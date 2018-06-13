@@ -1,0 +1,39 @@
+Sub copyNamesToNewSheet(ByVal wsOld As Worksheet, ByVal wsNew As Worksheet)
+    Dim n As Name, totalNames As Long, ii As Long, arr() As Variant
+    Dim strNewName As String, newNamedRangeRefersTo As String, wb As Workbook
+
+    Set wb = wsNew.Parent
+    For Each n In wsNew.Names
+        n.Delete
+    Next
+    Set n = Nothing
+
+    totalNames = wsOld.Names.Count
+    If totalNames = 0 Then Exit Sub
+
+    For ii = 1 To totalNames
+        Set n = wsOld.Names(ii)
+        
+        strNewName = newNamedRangeReference(n.Name, wsOld.Name, wsNew.Name)
+        newNamedRangeRefersTo = newNamedRangeReference(n.RefersTo, wsOld.Name, wsNew.Name)
+        Call wb.Names.Add(strNewName, newNamedRangeRefersTo)
+    Next
+
+End Sub
+
+Function newNamedRangeReference(oldNamedRangeReference As String, wsOldName As String, wsNewName As String) As String
+
+    Dim regX As Object
+    Set regX = CreateObject("VBScript.RegExp")
+
+    With regX
+        .Global = True
+        .IgnoreCase = True
+        .Pattern = "'"
+        wsOldName = .Replace(wsOldName, "''")
+        wsNewName = .Replace(wsNewName, "''")
+        .Pattern = "'?" & wsOldName & "'?!"
+        newNamedRangeReference = .Replace(oldNamedRangeReference, "'" & wsNewName & "'!")
+    End With
+
+End Function
